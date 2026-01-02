@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { m } from 'framer-motion';
@@ -16,7 +17,7 @@ export default function LoginPage() {
     const { setToken } = useAuth();
     const router = useRouter();
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://cortex-backend.aakashjammula.org';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -66,27 +67,53 @@ export default function LoginPage() {
     };
 
     const handleGoogleLogin = () => {
-        window.location.href = `${API_URL}/login/google`;
+        const callbackUrl = `${window.location.origin}/auth-callback`;
+        window.location.href = `${API_URL}/login/google?callback_url=${encodeURIComponent(callbackUrl)}`;
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-4">
-            {/* Background shapes */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px]" />
+        <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-4 relative overflow-hidden">
+            {/* Animated Background */}
+            <div className="absolute inset-0 w-full h-full">
+                <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] animate-spin-slow opacity-30">
+                    <div className="absolute top-[20%] left-[20%] w-[30%] h-[30%] bg-blue-600/20 rounded-full blur-[100px]" />
+                    <div className="absolute top-[50%] left-[50%] w-[30%] h-[30%] bg-purple-600/20 rounded-full blur-[100px]" />
+                    <div className="absolute top-[30%] right-[30%] w-[30%] h-[30%] bg-indigo-600/20 rounded-full blur-[100px]" />
+                </div>
+                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03]" />
             </div>
 
+            <style jsx global>{`
+                @keyframes spin-slow {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .animate-spin-slow {
+                    animation: spin-slow 20s linear infinite;
+                }
+            `}</style>
+
             <m.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md p-8 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl relative z-10"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="w-full max-w-md p-8 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-2xl relative z-10 shadow-2xl"
             >
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
-                        Welcome to Cortex
-                    </h1>
-                    <p className="text-white/50">Your advanced AI assistant</p>
+                    <div className="flex items-center justify-center gap-3 mb-2">
+                        <div className="w-10 h-10 relative">
+                            <Image
+                                src="/logo.png"
+                                alt="Fluxora"
+                                fill
+                                className="object-contain"
+                            />
+                        </div>
+                        <h1 className="text-3xl font-semibold text-white tracking-tight">
+                            Fluxora-ai
+                        </h1>
+                    </div>
+                    <p className="text-white/50 text-lg">Where intelligence meets imagination</p>
                 </div>
 
                 {error && (

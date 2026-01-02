@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useChat } from '@/providers/ChatProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { Send, Loader2, Bot, User, CornerDownLeft, Sparkles, Terminal, Wrench } from 'lucide-react';
@@ -59,17 +60,11 @@ export default function ChatWindow() {
             const result = await sendMessage(userMessage, activeThreadId || undefined);
 
             if (result) {
-                const { response: aiResponse, thread_id } = result;
+                const { thread_id } = result;
 
                 if (!activeThreadId) {
                     setActiveThreadId(thread_id);
                 }
-
-                setMessages(prev => [...prev, {
-                    type: 'ai' as const,
-                    content: aiResponse,
-                    id: (Date.now() + 1).toString()
-                }]);
             }
         } catch (err) {
             console.error('Failed to send message', err);
@@ -84,10 +79,10 @@ export default function ChatWindow() {
                 {/* Header with Toggle */}
                 <div className="flex-none h-16 border-b border-white/5 bg-[#050505]/80 backdrop-blur-md z-10 flex items-center justify-between px-6">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center">
-                            <Bot className="w-4 h-4 text-blue-400" />
+                        <div className="w-8 h-8 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center relative overflow-hidden">
+                            <Image src="/logo.png" alt="Fluxora" fill className="object-cover" />
                         </div>
-                        <span className="text-sm font-medium text-white/90">Cortex AI</span>
+                        <span className="text-sm font-medium text-white/90">Fluxora-ai</span>
                     </div>
 
                     <button
@@ -111,12 +106,12 @@ export default function ChatWindow() {
                 >
                     {messages.length === 0 && !isStreaming ? (
                         <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
-                            <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center animate-bounce">
-                                <Sparkles className="w-8 h-8 text-blue-400" />
+                            <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center animate-bounce relative overflow-hidden">
+                                <Image src="/logo.png" alt="Fluxora" fill className="object-cover" />
                             </div>
                             <div>
                                 <h2 className="text-2xl font-semibold text-white/90">How can I help you today?</h2>
-                                <p className="text-white/40 max-w-sm mt-2">Cortex is ready to search and assist with your complex queries.</p>
+                                <p className="text-white/40 max-w-sm mt-2">Fluxora-ai is ready to search and assist with your complex queries.</p>
                             </div>
                         </div>
                     ) : (
@@ -139,18 +134,18 @@ export default function ChatWindow() {
                                                 (msg.type === 'human' || msg.type === 'HumanMessage') && "flex-row-reverse"
                                             )}>
                                                 <div className={cn(
-                                                    "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border",
+                                                    "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border relative overflow-hidden",
                                                     (msg.type === 'human' || msg.type === 'HumanMessage')
                                                         ? "bg-white/10 border-white/10 text-white/70"
                                                         : msg.type === 'tool'
                                                             ? "bg-amber-600/10 border-amber-500/20 text-amber-400"
-                                                            : "bg-blue-600/10 border-blue-500/20 text-blue-400"
+                                                            : "bg-blue-600/10 border-blue-500/20"
                                                 )}>
                                                     {msg.type === 'human' || msg.type === 'HumanMessage'
                                                         ? <User className="w-4 h-4" />
                                                         : msg.type === 'tool'
                                                             ? <Wrench className="w-4 h-4" />
-                                                            : <Bot className="w-4 h-4" />
+                                                            : <Image src="/logo.png" alt="Fluxora" fill className="object-cover" />
                                                     }
                                                 </div>
 
@@ -201,7 +196,7 @@ export default function ChatWindow() {
                                         handleSend();
                                     }
                                 }}
-                                placeholder="Message Cortex..."
+                                placeholder="Message Fluxora-ai..."
                                 className="flex-1 bg-transparent border-none outline-none resize-none p-3 text-white placeholder:text-white/20 min-h-[52px] max-h-40"
                             />
                             <button

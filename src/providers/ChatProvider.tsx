@@ -48,11 +48,11 @@ const parseContent = (content: unknown): string => {
             }
         } catch (e) {
             if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-                const textRegex = /['"]text['"]:\s*(['"])((?:(?!\1).|\\\1)*)\1/g;
+                const textRegex = /['"]text['"]:\s*(['"])((?:\\.|(?!\1)[\s\S])*)\1/g;
                 const matches: string[] = [];
                 let match: RegExpExecArray | null;
                 while ((match = textRegex.exec(trimmed)) !== null) {
-                    matches.push(match[2].replace(/\\(['"])\\/g, '$1').replace(/\\n/g, '\n'));
+                    matches.push(match[2].replace(/\\(['"])/g, '$1').replace(/\\n/g, '\n'));
                 }
 
                 if (matches.length > 0) {
@@ -81,7 +81,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     const isInitialLoad = React.useRef(true);
     const lastLoadedThreadId = React.useRef<string | null>(null);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://cortex-backend.aakashjammula.org';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://fluxora-api.aakashjammula.org';
     // NOTE: `API_URL` should come from environment and not contain secrets in client-side code.
     // Keep sensitive endpoints and secrets on the server; only public API base URLs belong here.
 
@@ -179,14 +179,19 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                 const rawMessages = Array.isArray(data) ? data as unknown[] : (Array.isArray(data?.messages) ? data.messages as unknown[] : []);
                 const processed: Message[] = rawMessages
                     .filter((m) => {
-                        if (m === null || m === undefined) return false;
-                        const candidate = (m as Record<string, unknown>);
+                        if (!m) return false;
+                        const candidate = m as any;
+                        const hasToolCalls = Boolean(candidate.tool_calls || candidate.additional_kwargs?.tool_calls);
+                        const role = String(candidate.role ?? candidate.type ?? candidate.sender ?? '').toLowerCase();
+
+                        if (role === 'tool' || role === 'toolmessage' || hasToolCalls) return true;
+
                         const content = candidate.content ?? candidate.message ?? candidate.text ?? '';
                         if (Array.isArray(content) && content.length === 0) return false;
                         return Boolean(content);
                     })
                     .map((m) => {
-                        const obj = m as Record<string, unknown>;
+                        const obj = m as any;
                         const role = String(obj.role ?? obj.type ?? obj.sender ?? '').toLowerCase();
                         const isHuman = role === 'human' || role === 'user' || role === 'humanmessage';
                         const isTool = role === 'tool' || role === 'toolmessage';
@@ -195,9 +200,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                         if (isHuman) messageType = 'human';
                         else if (isTool) messageType = 'tool';
 
+                        let finalContent = parseContent(obj.content ?? obj.message ?? obj.text ?? '');
+                        const toolCalls = obj.tool_calls || obj.additional_kwargs?.tool_calls;
+
+                        if (!finalContent && toolCalls) {
+                            finalContent = `**System: Tool Usage**\n\`\`\`json\n${JSON.stringify(toolCalls, null, 2)}\n\`\`\``;
+                        }
+
                         return {
                             id: String(obj.id ?? Math.random().toString()),
-                            content: parseContent(obj.content ?? obj.message ?? obj.text ?? ''),
+                            content: finalContent,
                             type: messageType
                         } as Message;
                     });
@@ -241,6 +253,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             const processedResponse = parseContent(rawResponse);
 
             await fetchThreads();
+            if (data.thread_id) await fetchHistory(data.thread_id);
             return {
                 ...data,
                 response: processedResponse

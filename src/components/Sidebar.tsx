@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { useChat } from '@/providers/ChatProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { Plus, MessageSquare, Trash2, LogOut, ChevronLeft, ChevronRight, Search } from 'lucide-react';
@@ -36,7 +37,16 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean; setIsO
                 !isOpen && "invisible"
             )}
         >
+
             <div className="p-4 flex flex-col gap-4 h-full">
+                {/* App Logo */}
+                <div className="flex items-center gap-3 px-2 mb-2">
+                    <div className="w-8 h-8 relative rounded-lg overflow-hidden bg-white/5 border border-white/10">
+                        <Image src="/logo.png" alt="Fluxora" fill className="object-cover" />
+                    </div>
+                    <span className="font-bold text-white tracking-wide">Fluxora</span>
+                </div>
+
                 {/* Header */}
                 <button
                     onClick={handleNewChat}
